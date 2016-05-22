@@ -16,14 +16,14 @@ public class ComputeSum implements Runnable{
 	@Override
 	public void run() {
 		try {
-			computeMean();
+			computeSum();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private void computeMean() throws InterruptedException {
+	private void computeSum() throws InterruptedException {
 		Double[] sum = null;
 		Long[] count = null;
 		boolean flag = true;

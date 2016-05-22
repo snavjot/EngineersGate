@@ -11,6 +11,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import com.engineersgate.algos.ComputeMean;
+import com.engineersgate.algos.ComputeSquareDiff;
+import com.engineersgate.algos.ComputeStandardDeviation;
 import com.engineersgate.algos.ComputeSum;
 
 public class LargeFileComputeStandardDeviation implements Runnable{
@@ -18,14 +20,16 @@ public class LargeFileComputeStandardDeviation implements Runnable{
 	private final ExecutorService processor;
 	private final File inputFile;
 	private final File outputFile;
+	private final File meanDataFile;
 	private int chunkSize;
 	private int currOffset;
 	private boolean keepProcessing;
 	
-	public LargeFileComputeStandardDeviation(ExecutorService processor, File infile, File outFile, int chunkSize) {
+	public LargeFileComputeStandardDeviation(ExecutorService processor, File infile, File outFile, File meanFile, int chunkSize) {
 		this.processor = processor;
 		this.inputFile = infile;
 		this.outputFile = outFile;
+		this.meanDataFile = meanFile;
 		this.chunkSize = chunkSize;
 		this.currOffset = 0;
 		this.keepProcessing = true;
@@ -39,10 +43,10 @@ public class LargeFileComputeStandardDeviation implements Runnable{
 	 */
 	@Override
 	public void run() {
-		System.out.println("Reading");
+		Double[] meanData = UtilClass.getMeanData(this.meanDataFile);
 		while(this.keepProcessing) {
 			BufferedReader reader = getBlockOfdata();
-			processor.execute(new ComputeSum(reader));
+			processor.execute(new ComputeSquareDiff(reader, meanData));
 		}
 		/*
 		 * Call Shutdown on processor. Once it shuts down execute ComputeMean
@@ -65,7 +69,7 @@ public class LargeFileComputeStandardDeviation implements Runnable{
 		/*
 		 * Call ComputeMean
 		 */
-		Double[] mean = ComputeMean.computeMean();
+		Double[] mean = ComputeStandardDeviation.computeSTD();
 		UtilClass.writeMeanData(mean, this.outputFile);
 		System.out.println("Done12345");
 	}

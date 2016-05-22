@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.engineersgate.algos.ProcessedResult;
 import com.engineersgate.utility.LargeFileComputeMean;
+import com.engineersgate.utility.LargeFileComputeStandardDeviation;
 
 public class ProjectExecutor {
 
@@ -16,11 +17,13 @@ public class ProjectExecutor {
 	private static ArrayList<ProcessedResult> result = new ArrayList<ProcessedResult>();
 	public static void main(String[] args) throws InterruptedException {
 		String infilePath = "/home/navjot/development/rest/engineersgate/dataLarge-2";
-		String outfilePath = "/home/navjot/development/rest/engineersgate/ComputedMean";
+		String meanFilePath = "/home/navjot/development/rest/engineersgate/ComputedMean";
+		String outfilePath = "/home/navjot/development/rest/engineersgate/STD";
 		File inFile = new File(infilePath);
+		File meanFile = new File(meanFilePath);
 		File outFile = new File(outfilePath);
 		System.out.println("Starting");
-		fileReader.execute(new LargeFileComputeMean(processor, inFile, outFile, 8192*10));
+		fileReader.execute(new LargeFileComputeStandardDeviation(processor, inFile, outFile, meanFile, 8192*10));
 		Thread.sleep(1000);
 		fileReader.shutdown();
 		fileReader.awaitTermination(1000, TimeUnit.MILLISECONDS);

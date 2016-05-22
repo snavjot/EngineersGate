@@ -17,4 +17,8 @@ public class SharedData {
 	public static ArrayList<ProcessedResult> getDataForMean() {
 		return result;
 	}
+	
+	public static ArrayList<ProcessedResult> getDataForSTD() {
+		return result;
+	}
 }
