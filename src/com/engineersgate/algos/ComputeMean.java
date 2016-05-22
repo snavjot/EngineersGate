@@ -1,71 +1,38 @@
 package com.engineersgate.algos;
 
-import java.io.BufferedReader;
+import java.util.ArrayList;
 
-import com.engineersgate.executor.ProjectExecutor;
+import com.engineersgate.data.SharedData;
 
-public class ComputeMean implements Runnable{
-	
-	private BufferedReader reader;
-	
-	public ComputeMean(BufferedReader reader) {
-		this.reader = reader;
-	}
-	
-	@Override
-	public void run() {
-		try {
-			computeMean();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+public class ComputeMean {
 
-	private void computeMean() throws InterruptedException {
-		Double[] sum = null;
-		Long[] count = null;
-		boolean flag = true;
-		try {
-			while(true) {
-				String line = this.reader.readLine();
-				if(line == null)
-					break;
-				try {
-					line = line.trim();
-					String [] doubleString = line.split(",");
-					int i = 0;
-					if(flag) {
-						sum = new Double[doubleString.length];
-						count = new Long[doubleString.length];
-						for(i=0; i < sum.length; i++){
-							sum[i] = new Double(0);
-							count[i] = new Long(0);
-						}
-						flag = false;
-					}
-					i = 0;
-					for(String valString : doubleString){
-						try{
-						double val = Double.parseDouble(valString);
-						sum[i] += val;
-						count[i] += 1;
-						i += 1;
-						} catch(Exception ex) {
-							i += 1;
-						}
-					}
-				} catch(Exception ex) {
-					System.out.println("hello");
-					System.out.println(ex.getMessage());
+	public static Double[] computeMean() {
+		Double sum[] = null;
+		Long count[] = null;
+		boolean flag = false;
+		ArrayList<ProcessedResult> result = SharedData.getDataForMean();
+		for(ProcessedResult res : result) {
+			if(flag) {
+				Double[] tempSum = res.getSum();
+				Long[] tempCount = res.getCount();
+				for(int i=0; i< tempSum.length; i++) {
+					sum[i] += tempSum[i];
+					count[i] += tempCount[i];
 				}
 			}
-		} catch(Exception ex) {
-			System.out.println(ex.getMessage());
+			else {
+				sum = res.getSum();
+				count = res.getCount();
+				flag = true;
+			}
 		}
-		if(sum != null){
-			ProcResult res = new ProcResult(sum, count);
-			ProjectExecutor.addProcResult(res);
+		Double[] resultMean = new Double[sum.length];
+		for(int i=0; i< sum.length; i++){
+			System.out.println("Sum : " + sum[i]);
+			System.out.println("Count :" + count[i]);
+			System.out.println("Mean: " + sum[i]/count[i]);
+			resultMean[i] = new Double(sum[i]/count[i]);
 		}
+		return resultMean;
 	}
 }

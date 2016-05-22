@@ -6,19 +6,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.engineersgate.algos.ProcResult;
-import com.engineersgate.utility.LargeFileReader;
+import com.engineersgate.algos.ProcessedResult;
+import com.engineersgate.utility.LargeFileComputeMean;
 
 public class ProjectExecutor {
 
 	private static final ExecutorService fileReader = Executors.newSingleThreadExecutor();
 	private static final ExecutorService processor = Executors.newFixedThreadPool(4);
-	private static ArrayList<ProcResult> result = new ArrayList<ProcResult>();
+	private static ArrayList<ProcessedResult> result = new ArrayList<ProcessedResult>();
 	public static void main(String[] args) throws InterruptedException {
-		String filePath = "/home/navjot/development/rest/engineersgate/dataLarge-2";
-		File file = new File(filePath);
+		String infilePath = "/home/navjot/development/rest/engineersgate/dataLarge-2";
+		String outfilePath = "/home/navjot/development/rest/engineersgate/ComputedMean";
+		File inFile = new File(infilePath);
+		File outFile = new File(outfilePath);
 		System.out.println("Starting");
-		fileReader.execute(new LargeFileReader(processor, file, 8192*10));
+		fileReader.execute(new LargeFileComputeMean(processor, inFile, outFile, 8192*10));
 		Thread.sleep(1000);
 		fileReader.shutdown();
 		fileReader.awaitTermination(1000, TimeUnit.MILLISECONDS);
@@ -30,17 +32,17 @@ public class ProjectExecutor {
 			}
 			Thread.sleep(1000);
 		}
-		while(true) {
-			if(processor.isTerminated()) {
-				break;
-			}
-			Thread.sleep(1000);
-		}
-		compute();
+//		while(true) {
+//			if(processor.isTerminated()) {
+//				break;
+//			}
+//			Thread.sleep(1000);
+//		}
+//		compute();
 		System.out.println("Done and Res: " + result.size());
 	}
 
-	public static void addProcResult(ProcResult res) {
+	public static void addProcResult(ProcessedResult res) {
 		
 		synchronized(ProjectExecutor.class){
 			result.add(res);
@@ -51,7 +53,7 @@ public class ProjectExecutor {
 		Double sum[] = null;
 		Long count[] = null;
 		boolean flag = false;
-		for(ProcResult res : result) {
+		for(ProcessedResult res : result) {
 			if(flag) {
 				Double[] tempSum = res.getSum();
 				Long[] tempCount = res.getCount();

@@ -11,69 +11,70 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import com.engineersgate.algos.ComputeMean;
+import com.engineersgate.algos.ComputeSum;
 
-public class LargeFileReader implements Runnable{
+public class LargeFileComputeStandardDeviation implements Runnable{
 	
 	private final ExecutorService processor;
-	private final File file;
+	private final File inputFile;
+	private final File outputFile;
 	private int chunkSize;
 	private int currOffset;
 	private boolean keepProcessing;
 	
-	public LargeFileReader(ExecutorService processor, File file, int chunkSize) {
+	public LargeFileComputeStandardDeviation(ExecutorService processor, File infile, File outFile, int chunkSize) {
 		this.processor = processor;
-		this.file = file;
+		this.inputFile = infile;
+		this.outputFile = outFile;
 		this.chunkSize = chunkSize;
 		this.currOffset = 0;
 		this.keepProcessing = true;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 * Reads Input Time series data block by block and calls ComputeSum
+	 * Once Compute sum is done it calls ComputeMean to process the mean.
+	 */
 	@Override
 	public void run() {
 		System.out.println("Reading");
 		while(this.keepProcessing) {
-			BufferedReader reader = readData1();
-			processor.execute(new ComputeMean(reader));
-//			try {
-//				Thread.sleep(1);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			BufferedReader reader = getBlockOfdata();
+			processor.execute(new ComputeSum(reader));
 		}
+		/*
+		 * Call Shutdown on processor. Once it shuts down execute ComputeMean
+		 */
+		processor.shutdown();
+		while(true){
+			/* 
+			 * Checks if all tasks are finished
+			 */
+			if(processor.isTerminated()) {
+				break;
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		/*
+		 * Call ComputeMean
+		 */
+		Double[] mean = ComputeMean.computeMean();
+		UtilClass.writeMeanData(mean, this.outputFile);
 		System.out.println("Done12345");
 	}
 	
-//	private BufferedReader readData() {
-//		BufferedReader bReader = null;
-//		try {
-//			FileInputStream fReader= new FileInputStream(this.file);
-//			RandomAccessFile rReader = new RandomAccessFile(this.file, "r");
-//			
-//			rReader.seek(this.currOffset + this.chunkSize);
-//			
-//			while(true) {
-//				int read = rReader.read();
-//				if(read == '\n' || read == -1)
-//					break;
-//			}
-//			long start = this.currOffset;
-//			long end = rReader.getFilePointer();
-//			byte[] arr = new byte[((int)rReader.getFilePointer() - this.currOffset)];
-//			int read = fReader.read(arr, this.currOffset, arr.length);
-//			
-//			bReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(arr)));
-//		} catch(Exception ex) {
-//		}
-//		
-//		return bReader;
-//	}
-	
-	private BufferedReader readData1() {
+	private BufferedReader getBlockOfdata() {
 		byte[] arr = null;
 		try {
-			FileInputStream fReader = new FileInputStream(this.file);
-			if(file.length() < this.currOffset)
+			FileInputStream fReader = new FileInputStream(this.inputFile);
+			if(inputFile.length() < this.currOffset)
 				this.keepProcessing = false;
 			fReader.skip(this.currOffset);
 			arr = new byte[(int)this.sizeToread()];
@@ -92,7 +93,7 @@ public class LargeFileReader implements Runnable{
 	
 	private long sizeToread() {
 		try{
-			RandomAccessFile rReader = new RandomAccessFile(this.file, "r");
+			RandomAccessFile rReader = new RandomAccessFile(this.inputFile, "r");
 			rReader.seek(this.currOffset + this.chunkSize);
 			while(true) {
 				int read = rReader.read();
